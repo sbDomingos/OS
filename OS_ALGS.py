@@ -1,4 +1,4 @@
-def criar_processos_padrao():
+def criar_processos():
     """
     Função auxiliar para sempre gerar processos 'fresquinhos' (zerados) 
     toda vez que uma nova simulação for escolhida.
