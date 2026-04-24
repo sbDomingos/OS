@@ -1,6 +1,6 @@
 def criar_processos():
     """
-    Função auxiliar para sempre gerar processos 'fresquinhos' (zerados) 
+    Funcao auxiliar para sempre gerar processos 'fresquinhos' (zerados) 
     toda vez que uma nova simulação for escolhida.
     """
     return [
