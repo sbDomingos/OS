@@ -6,7 +6,7 @@ class Processo:
         self.tempo_restante = execucao
         self.tempo_espera = 0
         self.tempo_conclusao = 0
-        self.tempo_turnaround = 0 # Tempo efetivo observado (Conclusão - Chegada)
+        self.tempo_turnaround = 0 
 
 class Escalonador:
     def __init__(self, processos, ttc=0, quantum=0):
@@ -38,7 +38,7 @@ class Escalonador:
         for p in fila:
             if tempo_atual < p.chegada:
                 tempo_atual = p.chegada
-            if ordem_execucao: # Aplica TTC se não for o primeiro
+            if ordem_execucao: 
                 tempo_atual += self.ttc
             
             ordem_execucao.append(f"P{p.pid}")
@@ -55,14 +55,12 @@ class Escalonador:
         concluidos = []
 
         while processos_restantes:
-            # Filtra processos que já chegaram
             prontos = [p for p in processos_restantes if p.chegada <= tempo_atual]
             
             if not prontos:
                 tempo_atual = processos_restantes[0].chegada
                 continue
             
-            # Escolhe o de menor tempo de execução
             p_atual = min(prontos, key=lambda p: p.execucao)
             processos_restantes.remove(p_atual)
 
@@ -143,7 +141,6 @@ class Escalonador:
             p_atual.tempo_restante -= tempo_executado
             tempo_atual += tempo_executado
 
-            # Verifica novos processos que chegaram durante a execução
             while indice_chegada < n and processos_ordenados[indice_chegada].chegada <= tempo_atual:
                 fila_prontos.append(processos_ordenados[indice_chegada])
                 indice_chegada += 1
@@ -153,7 +150,6 @@ class Escalonador:
             else:
                 p_atual.tempo_conclusao = tempo_atual
 
-            # Se a fila esvaziou mas ainda há processos a chegar
             if not fila_prontos and indice_chegada < n:
                 tempo_atual = processos_ordenados[indice_chegada].chegada
                 fila_prontos.append(processos_ordenados[indice_chegada])
@@ -162,15 +158,39 @@ class Escalonador:
         self._imprimir_resultados(ordem_execucao)
 
 
-def criar_processos_padrao():
-    return [
-        Processo(1, 0, 5),
-        Processo(2, 1, 3),
-        Processo(3, 2, 8),
-        Processo(4, 3, 6)
-    ]
+def coletar_dados_processos():
+    """Coleta os dados dos processos iterativamente do usuário."""
+    dados_base = []
+    print("\n--- CONFIGURAÇÃO DOS PROCESSOS ---")
+    while True:
+        try:
+            qtd = int(input("Quantos processos você deseja simular? "))
+            if qtd <= 0:
+                print("O número de processos deve ser maior que zero.")
+                continue
+            break
+        except ValueError:
+            print("Por favor, digite um número inteiro válido.")
+
+    for i in range(qtd):
+        print(f"\n[ Processo {i+1} de {qtd} ]")
+        while True:
+            try:
+                pid = int(input("  PID do processo: "))
+                chegada = int(input("  Tempo de chegada na CPU: "))
+                execucao = int(input("  Tempo de execução (Burst): "))
+                # Salva como dicionário para podermos recriar os objetos facilmente
+                dados_base.append({'pid': pid, 'chegada': chegada, 'execucao': execucao})
+                break
+            except ValueError:
+                print("  -> Erro: Digite apenas números inteiros. Tente novamente.")
+                
+    return dados_base
 
 def menu_principal():
+    # 1. Coleta a configuração base (os inputs dinâmicos) logo ao abrir
+    dados_base = coletar_dados_processos()
+
     while True:
         print("\n" + "="*40)
         print("SIMULADOR DE ESCALONAMENTO DE CPU")
@@ -197,7 +217,9 @@ def menu_principal():
         except ValueError:
             ttc = 0
 
-        processos = criar_processos_padrao()
+        # 2. Recria os objetos Processo a partir dos dados base para cada nova simulação
+        processos = [Processo(d['pid'], d['chegada'], d['execucao']) for d in dados_base]
+        
         simulador = Escalonador(processos, ttc=ttc)
 
         if escolha == '1':
